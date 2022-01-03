@@ -28,18 +28,18 @@ func _ready():
 #	randomize()
 #	if(itemId == -1):
 #		itemId = randi() % image_list.size() - 1
-		
+
 	var image = Vars.ITEM_LIST_SPRITES[itemId]
 	var sprite = get_node("Area2D/Sprite")
 	sprite.texture = load('assets/'+ image)
 #	sprite.rotation_degrees = randi() % 360
 	var spritesize = sprite.get_texture().get_size()
-		
+
 	var th = Vars.GRID_ITEM_SIZE #target height
 	var tw = Vars.GRID_ITEM_SIZE #target width
 	var scale = Vector2( tw / spritesize.x, th / spritesize.y)
 	sprite.scale = scale
-	
+
 	var tween = get_node("Tween")
 	tween.connect("tween_step", get_parent(), "_on_Tween_step", [self])
 	tween.connect("tween_all_completed", get_parent(), "_on_Tween_all_completed", [self])
@@ -47,16 +47,16 @@ func _ready():
 func _process(_delta):
 	if Engine.get_frames_drawn() % 60 == 0:
 		get_node("Area2D/TextEdit").text = str(itemId) + "\n" + str(rasterY)+"-"+str(rasterX)
-		
+
 func startSelection():
 	get_node("Area2D/AnimationPlayer").play("StartDragging")
 #	print("should animate")
-	
+
 func endSelection():
 	get_node("Area2D/AnimationPlayer").stop(true)
 	get_node("Area2D/Sprite").rotation_degrees = 0
 #	print("stop animate")
-	
+
 
 func _on_Area2D_input_event(_viewport, event, _shape_idx):
 	if event is InputEventMouseButton:
@@ -69,11 +69,11 @@ func _on_Area2D_input_event(_viewport, event, _shape_idx):
 
 func startTween(toPosition: Vector2):
 	var tween = get_node("Tween")
-	
+
 	if tween.is_active():
 		tween.stop_all()
 		tween.seek(Vars.TIME_SWITCHING)
-	
+
 	tween.interpolate_property(self, "position",
 			self.position, toPosition, Vars.TIME_SWITCHING,
 			Tween.TRANS_BOUNCE, Tween.EASE_OUT)
@@ -85,11 +85,11 @@ func dropByPlaces(itemCount: int):
 		rasterY += itemCount
 #		var newPos = Vector2(self.position.x, rasterY * Vars.GRID_ITEM_SIZE - Vars.GRID_MAX_ROWS/2 * Vars.GRID_ITEM_SIZE)
 		var newPos = Vector2(self.position.x, rasterY * Vars.GRID_ITEM_SIZE)
-		
+
 		name = "Item "+ str(rasterY) + "-" + str(rasterX)
 		isSwitching = true
 		startTween(newPos)
-		
+
 
 func _on_Area2D_mouse_entered():
 	pass # Replace with function body.

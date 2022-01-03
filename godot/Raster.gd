@@ -19,33 +19,38 @@ func _ready():
 #	remove_child(get_node("RasterItem"))
 	get_node("RasterItem").queue_free()
 	randomize()
-	
+
 	yield(get_tree(), "idle_frame")
 
 	for x in range(Vars.GRID_MAX_COLS):
 		createNewItem(Vars.GRID_MAX_ROWS, x)
-	
-	yield(get_tree(), "idle_frame") 
+
+	yield(get_tree(), "idle_frame")
 	correctWindowSize();
-	
+
 	get_tree().get_root().connect("size_changed", self, "correctWindowSize")
-	
-	
+
+
 func correctWindowSize():
-	# set camera 
+	# set camera
 	var camera = get_node("Camera")
-	camera.position = Vector2(Vars.GRID_ITEM_SIZE, Vars.GRID_ITEM_SIZE) * -1
-	
+#	camera.position = Vector2(Vars.GRID_MAX_ROWS, Vars.GRID_MAX_COLS)
+
+
 	var minSize = min(OS.window_size.x, OS.window_size.y)
-	
-	camera.zoom = (Vector2(Vars.GRID_MAX_ROWS, Vars.GRID_MAX_COLS) * Vars.GRID_ITEM_SIZE + camera.position * -1) / Vector2(minSize, minSize) 
-	
-	
+
+	camera.position.x = (OS.window_size.x * -1 / 2) + (Vars.GRID_MAX_ROWS * Vars.GRID_ITEM_SIZE / 2) - Vars.GRID_ITEM_SIZE / 2
+	camera.position.y = (OS.window_size.y * -1 / 2) + (Vars.GRID_MAX_COLS * Vars.GRID_ITEM_SIZE /2) - Vars.GRID_ITEM_SIZE / 2
+	camera.zoom.y = camera.position.y + 1
+
+	#camera.zoom = (Vector2(Vars.GRID_MAX_ROWS, Vars.GRID_MAX_COLS) * Vars.GRID_ITEM_SIZE) / minSize * 2
+
+
 #	printt("zoom", camera.zoom, "position", camera.position, "window", OS.window_size, "minSize", minSize)
 
 #	OS.window_size = Vector2(Vars.GRID_MAX_COLS, Vars.GRID_MAX_ROWS) * Vars.GRID_ITEM_SIZE + camera.position * -1
 #	OS.window_size = Vector2(GRID_MAX_COLS, GRID_MAX_ROWS) * GRID_ITEM_SIZE + Vector2(GRID_ITEM_SIZE, GRID_ITEM_SIZE)
-	
+
 #	get_tree().set_screen_stretch(SceneTree.STRETCH_MODE_VIEWPORT, SceneTree.STRETCH_ASPECT_EXPAND, OS.window_size, 1)
 
 func _input(event):
@@ -55,7 +60,7 @@ func _input(event):
 # checks if there is space below an item
 
 func checkFreeSpace():
-	
+
 	for x in range(Vars.GRID_MAX_ROWS):
 		var freeSpace = 0
 		for y in range(Vars.GRID_MAX_COLS - 1, -1, -1):
@@ -64,19 +69,19 @@ func checkFreeSpace():
 				freeSpace += 1
 			elif freeSpace > 0:
 				item.dropByPlaces(freeSpace)
-				
+
 		if freeSpace > 0:
 			createNewItem(freeSpace, x)
 #			checkCombos()
 #		if freeSpace > 0:
 #			var item = getGridItem(x, 0)
 #			item.dropByPlaces(freeSpace)
-			
+
 # create a defined number of new items on the given x coordinate, that will drop ..
 func createNewItem(rowItemCount, x):
-	
+
 	for y in range(rowItemCount):
-		
+
 		"""
 			Y
 			Y
@@ -85,45 +90,45 @@ func createNewItem(rowItemCount, x):
 		x x x x
 		x x x x
 		"""
-			
+
 		var ItemNode = RasterItem.instance()
 #		ItemNode.position.x = x * Vars.GRID_ITEM_SIZE - Vars.GRID_MAX_COLS/2 * Vars.GRID_ITEM_SIZE
 #		ItemNode.position.y = (rowItemCount * -1 + y) * Vars.GRID_ITEM_SIZE - Vars.GRID_MAX_ROWS/2 * Vars.GRID_ITEM_SIZE
 		ItemNode.position.x = x * Vars.GRID_ITEM_SIZE
 		ItemNode.position.y = (rowItemCount * -1 + y) * Vars.GRID_ITEM_SIZE
-		
+
 #		ItemNode.position.y = y * Vars.GRID_ITEM_SIZE - Vars.GRID_MAX_ROWS/2 * Vars.GRID_ITEM_SIZE
 		var targetPosition = Vector2(0,0)
 		targetPosition.x = ItemNode.position.x
 #		targetPosition.y = y * Vars.GRID_ITEM_SIZE - Vars.GRID_MAX_ROWS/2 * Vars.GRID_ITEM_SIZE
 		targetPosition.y = y * Vars.GRID_ITEM_SIZE
-		
+
 		ItemNode.rasterX = x
 		ItemNode.rasterY = y
-		
+
 		ItemNode.itemId = randi() % Vars.ITEM_LIST_SPRITES.size()
 		# Item Naming convention
 		ItemNode.name = "Item "+ str(y) + "-" + str(x)
-		
+
 		ItemNode.connect("StartDragging", self, "startDragging")
 		ItemNode.connect("EndDragging", self, "endDragging")
 #		ItemNode.isSwitching = true
 		add_child(ItemNode)
-		
-		yield(get_tree(), "idle_frame") 
+
+		yield(get_tree(), "idle_frame")
 		ItemNode.startTween(targetPosition)
-	
+
 # checks if there are any items that can be marked for deletion
 func checkCombos():
-	
+
 	var checkAgain = false
-	
+
 	for y in range(Vars.GRID_MAX_ROWS):
 		var counter = 0
 		var lastItemId = -1
 
 		for x in range(Vars.GRID_MAX_COLS):
-			
+
 			var item = getGridItem(x,y)
 			if item:
 				if lastItemId == item.itemId and item.itemId >= 0:
@@ -146,7 +151,7 @@ func checkCombos():
 		var lastItemId = -1
 
 		for y in range(Vars.GRID_MAX_ROWS):
-			
+
 			var item = getGridItem(x,y)
 			if item:
 				if lastItemId == item.itemId and item.itemId >= 0:
@@ -194,8 +199,8 @@ func cleanRaster():
 		comboCount = 0
 		print("no groups found")
 	isChecking = false
-		
-	
+
+
 
 
 # starts dragging an item
@@ -221,7 +226,7 @@ func endDragging(targetItem: RasterItem):
 			isSwitching = true
 			targetItem.isSwitching = true
 			draggingItem.isSwitching = true
-			
+
 			var oldX = targetItem.rasterX
 			var oldY = targetItem.rasterY
 
@@ -269,7 +274,7 @@ func endDragging(targetItem: RasterItem):
 
 # when all movement is done, allow switching again and remove tween
 func _on_Tween_all_completed(item: RasterItem):
-	
+
 
 	if item.isSwitching:
 #		printt("all movement completed")
@@ -280,7 +285,7 @@ func _on_Tween_all_completed(item: RasterItem):
 
 		if isChecking:
 			return
-				
+
 		isChecking = true
 #		cleanRaster()
 		call_deferred("cleanRaster")
